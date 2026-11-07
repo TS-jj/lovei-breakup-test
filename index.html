@@ -426,91 +426,24 @@ const TRAIT = {
   "边界感":"不想再越界"
 };
 
-/* [话语] 结果页：四小段说完——类型、依据、你的原话、一句提醒；不堆长段落 */
-const TYPE_LINE = {
-  "痴情系":"关系断了，注意力还留在原地。",
-  "淡系":"记得好，但不纠缠。",
-  "冷漠系":"对方的事已经不太能牵动你了。",
-  "后悔系":"总在回头看那个岔口。",
-  "面子大过天":"想找对方，又拉不下脸。",
-  "恨海情天":"爱和恨都还没散。",
-  "轻浮系":"没太把这段当成一件要交代的事。",
-  "表演系":"难过的部分，有一半是给人看的。"
-};
-
-/* [话语] 每种类型再补一句落在行为上的话，让正文有内容但不冗长 */
+/* [话语] 结果页正文：一段白描，只讲这类人日常是什么样，不写判定过程、不引用题目 */
+/* 标题下面已经有一句 quote，这里不再重复它，直接写行为 */
 const TYPE_EXTRA = {
-  "痴情系":"你的日常里还留着对方的痕迹，翻记录、看主页、绕路经过老地方；这股劲不是坏事，但容易把自己困在原地。",
-  "淡系":"你把这段关系放回了它该在的位置：偶尔想起会感慨，但不会再为它改掉今天的安排。",
-  "冷漠系":"不是没认真过，是情绪已经收干净了；再提起时，你能像说别人的事一样讲完。",
-  "后悔系":"你反复回放的是某个具体瞬间——当时换一句话、少赌一次气，会不会就不一样。",
-  "面子大过天":"你在等一个不用先低头的机会；可对方多半也在等，于是两个人一起停在原地。",
-  "恨海情天":"你在恨和想念之间来回切换，越是证明自己不在意，越说明这件事还没过去。",
-  "轻浮系":"你不太愿意把这段关系看得太重，用玩笑把它带过去，比认真面对轻松。",
-  "表演系":"你更在意别人怎么看你走出来这件事，真实的感受反而排在后面。"
+  "痴情系":"你会反复去看对方的动态，绕路经过你们常去的地方，遇到开心或难受的事，第一反应还是想告诉对方。你不是不知道这样没意义，只是暂时还做不到把这个人从生活里真的删掉。偶尔也会想，等哪天真的一点感觉都没有了，反而有点舍不得。",
+  "淡系":"你不想再翻旧账，也不想复合。想起对方时更多是感谢，不是不甘；别人问起，你能很自然地说一句「都过去了」。偶尔还是会感慨，但不会再为这段关系改掉今天的安排。有人觉得你放得太快，其实你只是提前把该想的都想完了。",
+  "冷漠系":"听到对方的消息不会心跳加快，看到新的合照也只是扫一眼。不是没认真过，是情绪已经收干净了；再提起时，你能像说别人的事一样讲完。真要遇上，你也愿意正常打个招呼，只是不会再多问一句。",
+  "后悔系":"你反复回放的是某个具体瞬间——当时换一句话、少赌一次气，会不会就不一样。这种回想不常发生，但一旦开始就停不下来，尤其在后半夜。你也清楚回不去，只是那个岔口总在脑子里亮着。",
+  "面子大过天":"你会在输入框里打完一段话又删掉，也会借着「刚好路过」「顺手问一下」的名义联系对方。你在等一个不用先低头的机会；可对方多半也在等，于是两个人一起停在原地。真有人先开口，你反而会松一口气。",
+  "恨海情天":"你在恨和想念之间来回切换，越是证明自己不在意，越说明这件事还没过去。别人提起对方，你嘴上说得云淡风轻，心里其实还是会紧一下。恨的部分是真的，舍不得的部分也是真的。",
+  "轻浮系":"你能很快回到自己的节奏，朋友问起就用玩笑带过去。不是冷血，只是你不太愿意把情绪摊开给人看，也不想让它占掉太多位置。真要说的话，那些没讲出口的部分，你自己也还没整理好。",
+  "表演系":"你会在朋友圈发一句意味不明的话，过一会儿又删掉；在共同朋友面前表现得已经走出来，回家却反复想对方有没有看到。你更在意别人怎么看你走出来，真实的感受反而排在后面。"
 };
-
-/* [话语] 主导倾向对应的那句推断，替换掉逐题复述 */
-const EVID_LINE = {
-  "占有欲":"这些选择指向同一件事：你还想知道对方在做什么、和谁在一起。",
-  "爱意":"这些选择说明对方在你心里还有位置，不是一句「都过去了」能盖住的。",
-  "恨意":"这些选择里带着没消化的情绪，你对这段关系并不是真的无感。",
-  "悔意":"这些选择里反复出现「如果当时」，你还在回看那个岔口。",
-  "善意":"这些选择里几乎没有攻击性，你更愿意让对方体面地往前走。",
-  "轻浮":"这些选择多半是玩笑和带过，你不太愿意把情绪摊开给人看。",
-  "回头率":"这些选择里，你在意对方（和别人）怎么看你，多过你自己怎么想。",
-  "边界感":"这些选择都在收：不追问、不打扰，把线划清楚。"
-};
-
-/* [话语] 从答过的题里挑 2 道与主导倾向相关的，引用原话做证据 */
-function pickEvidence(ans, dim, k){
-  const hit = [];
-  for(let i=0;i<QUESTIONS.length;i++){
-    const v = ans[i];
-    if(typeof v!=="number" || v<0) continue;
-    if(new Set(QUESTIONS[i].opts[v][1]).has(dim)) hit.push(i);
-  }
-  if(!hit.length) return "";
-  const step = hit.length > k ? Math.floor(hit.length/k) : 1;
-  const picked = [];
-  for(let i=0;i<hit.length && picked.length<k;i+=step) picked.push(hit[i]);
-  return picked.map(i=>'第 '+(i+1)+' 题「'+QUESTIONS[i].opts[ans[i]][0]+'」').join("、");
-}
 
 function buildResultText(typeName, s, ans){
   const picked = ans.filter(v=>typeof v==="number" && v>=0).length;
   if(!picked) return "25 题都跳过了，先回去做一遍才有结果。";
-  const rank = dimRank(s);
-  const top = rank[0], second = rank[1];
-  const sc = d => (s[d]||0)/Math.pow(Math.max(1,OPP[d]),0.75);
-
-  /* 每个维度在已选选项里出现的次数，比原始分更好读 */
-  const cnt = {};
-  DIMS.forEach(d=>cnt[d]=0);
-  ans.forEach((v,i)=>{
-    if(typeof v==="number" && v>=0) new Set(QUESTIONS[i].opts[v][1]).forEach(d=>cnt[d]++);
-  });
-
-  /* 只给主导项的次数：次高项的次数常常更大（它机会更多），一起报会自相矛盾 */
-  const p1 = "你是「"+typeName+"」。把 25 个选择按维度折算后，最突出的是「"+TRAIT[top]+"」（"+cnt[top]+" 次），其次是「"+
-    TRAIT[second]+"」。";
-
-  const evid = pickEvidence(ans, top, 2);
-  const p2 = evid
-    ? "具体到题目，你选了"+evid+"。"+EVID_LINE[top]
-    : EVID_LINE[top];
-
-  const p3 = TYPE_LINE[typeName] + (TYPE_EXTRA[typeName] || "");
-
-  const notes = [];
-  const skipped = QUESTIONS.length - picked;
-  if(sc(top) - sc(second) < 0.06) notes.push("前两项比例很接近，结果卡在两类之间，换一两题就可能变。");
-  if(skipped) notes.push("你有 "+skipped+" 题跳过，结果会比全答更松一些。");
-  const least = rank[rank.length-1];
-  if(cnt[least] === 0) notes.push("「"+TRAIT[least]+"」一次都没出现，方向比较统一。");
-  const p4 = notes.length ? notes.join("") : "";
-
-  return [p1, p2, p3, p4].filter(Boolean).join("\n\n");
+  /* [话语] 只描述这一类人，不解释怎么算出来的 */
+  return TYPE_EXTRA[typeName] || TYPES[typeName].desc;
 }
 
 /* [话语] 结果页补充区：3 个标签 + 必要的提醒，不再逐题复述 */
@@ -518,10 +451,9 @@ function buildAnalysis(s, ans, typeName){
   const picked = ans.filter(v=>typeof v==="number" && v>=0).length;
   if(!picked) return "";
   const rank = dimRank(s);
-  const sc = d => (s[d]||0)/Math.pow(Math.max(1,OPP[d]),0.75);
   const chips = rank.slice(0,3).map(d=>'<span class="chip">'+TRAIT[d]+'</span>').join("");
+  /* [话语] 只保留跳题这句必要说明；"前两项很接近"属于判定过程，去掉 */
   const notes = [];
-  if(sc(rank[0]) - sc(rank[1]) < 0.06) notes.push("前两项很接近，换一两题就会变成另一种。");
   const skipped = QUESTIONS.length - picked;
   if(skipped) notes.push("跳过了 "+skipped+" 题，结果会偏松一点。");
   return '<div class="kw">'+chips+'</div>'+
