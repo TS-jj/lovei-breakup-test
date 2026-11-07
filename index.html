@@ -1,0 +1,836 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lovei · 分手后你是怎样的人</title>
+<style>
+  :root{
+    --bg:#faf9f7;
+    --ink:#1c1c1e;
+    --sub:#8a8a8e;
+    --line:#e5e3df;
+    --card:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);
+    min-height:100vh;min-height:100dvh;
+    display:flex;flex-direction:column;
+  }
+  .page{display:none;flex:1;flex-direction:column;width:100%;max-width:640px;margin:0 auto;padding:24px 22px 40px;}
+  .page.active{display:flex}
+
+  /* ---------- 首页 ---------- */
+  #home{justify-content:center;text-align:center}
+  .brand{font-size:clamp(64px,18vw,110px);font-weight:800;letter-spacing:.02em;line-height:1}
+  .brand i{font-style:normal;color:#e05a6d}
+  .subtitle{margin-top:14px;font-size:clamp(20px,5vw,26px);font-weight:600;color:var(--ink)}
+  .home-line{margin-top:8px;font-size:14px;color:var(--sub)}
+  .btn{
+    display:block;width:100%;border:none;cursor:pointer;
+    background:var(--ink);color:#fff;font-size:17px;font-weight:600;
+    padding:16px;border-radius:14px;margin-top:48px;
+    transition:transform .12s ease,opacity .12s;
+  }
+  .btn:active{transform:scale(.97);opacity:.85}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+
+  /* ---------- 答题页 ---------- */
+  .progress{height:3px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:28px}
+  .progress b{display:block;height:100%;background:var(--ink);width:0;transition:width .25s ease}
+  .qnum{font-size:13px;color:var(--sub);letter-spacing:.12em}
+  .qtext{font-size:clamp(19px,5vw,23px);font-weight:700;line-height:1.5;margin:12px 0 28px}
+  .opt{
+    display:block;width:100%;text-align:left;cursor:pointer;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px 18px;margin-bottom:12px;font-size:16px;line-height:1.5;color:var(--ink);
+    transition:border-color .12s,background .12s;
+  }
+  .opt:active{border-color:var(--ink);background:#f2f0ec}
+  .opt .tag{display:inline-block;font-size:12px;color:var(--sub);margin-right:10px;font-weight:600}
+  .quiz-footer{margin-top:auto;padding-top:24px}
+  .back-btn{
+    background:none;border:none;color:var(--sub);font-size:15px;cursor:pointer;
+    padding:10px 4px;display:none;
+  }
+  .back-btn.show{display:inline-block}
+
+  /* ---------- 结果页 ---------- */
+  #result{padding:0;max-width:none}
+  .result-wrap{width:100%;max-width:640px;margin:0 auto;padding:40px 22px 48px;display:flex;flex-direction:column;flex:1}
+  .result-brand{text-align:center;font-size:clamp(64px,18vw,110px);font-weight:800;letter-spacing:.02em;line-height:1}
+  .result-brand i{font-style:normal;color:#e05a6d}
+  .result-sub{text-align:center;font-size:16px;font-weight:600;margin-top:8px}
+  .ptype{text-align:center;margin-top:34px}
+  .ptype .name{font-size:clamp(30px,8vw,40px);font-weight:800;line-height:1.3}
+  .ptype .quote{font-size:15px;margin-top:10px;line-height:1.6}
+  .radar-box{margin:26px auto 0;width:min(78vw,340px)}
+  .radar-box canvas{width:100%;height:auto;display:block}
+  .desc{
+    margin-top:26px;font-size:15px;line-height:1.9;text-align:justify;text-indent:2em;
+    border-top:1px solid rgba(0,0,0,.12);border-bottom:1px solid rgba(0,0,0,.12);padding:20px 2px;
+    /* [话语] 段落由脚本生成，保留换行 */
+    white-space:pre-line;
+  }
+  .scores{margin-top:18px;border:1px solid rgba(0,0,0,.14);border-radius:14px;padding:14px 16px;font-size:13px}
+  /* [话语] 补充区改成标签，不再是一大段文字 */
+  #rDetail{border:none;padding:0}
+  .kw{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;justify-content:center}
+  .chip{font-size:13px;padding:7px 14px;border-radius:999px;background:rgba(0,0,0,.055);color:#3a3a3c}
+  .note{font-size:12px;color:#8a8a8e;margin-top:12px;text-align:center;line-height:1.7}
+  .score-row{display:flex;align-items:center;margin:7px 0}
+  .score-row .k{width:4.5em;flex:none}
+  .score-row .bar{flex:1;height:6px;background:rgba(0,0,0,.1);border-radius:3px;overflow:hidden;margin:0 10px}
+  .score-row .bar b{display:block;height:100%;background:currentColor;border-radius:3px}
+  .score-row .v{width:2em;text-align:right;flex:none}
+  .result-actions{margin-top:30px}
+  .result-actions .btn{margin-top:14px}
+
+  /* ---------- 其他类型 ---------- */
+  .others-title{text-align:center;font-size:26px;font-weight:800;margin-bottom:24px}
+  .type-card{
+    border:1px solid var(--line);border-left:6px solid var(--c,#ccc);
+    background:var(--card);border-radius:12px;padding:16px 18px;margin-bottom:14px;cursor:pointer;
+    transition:background .12s;
+  }
+  .type-card:active{background:#f2f0ec}
+  .type-card h3{font-size:18px;font-weight:700}
+  .type-card p{font-size:13px;color:var(--sub);margin-top:6px;line-height:1.6}
+
+  /* ---------- 赞赏 ---------- */
+  .appreciate{margin-top:36px;text-align:center}
+  .appreciate img{width:min(52vw,220px);border-radius:10px;display:block;margin:0 auto;cursor:zoom-in}
+  .appreciate p{font-size:14px;color:var(--sub);margin-top:12px}
+
+  @media (min-width:768px){
+    .page{padding-top:48px}
+    .opt:hover{border-color:var(--ink)}
+  }
+</style>
+</head>
+<body>
+
+<!-- 修复标注：P1 选项难以作答｜P2 结果高度重复｜P3 分析笼统且不透明｜[题本] 题目与选项合理性审查｜[综合] 逐项汇总 25 个实际选择生成结果；每处改动就地标明 -->
+
+<!-- 首页 -->
+<section id="home" class="page active">
+  <div class="brand">Love<i>i</i></div>
+  <div class="subtitle">分手后你是怎样的人</div>
+  <div class="home-line">25 道题 · 8 个维度 · 8 种结局</div>
+  <button class="btn" onclick="startQuiz()">开始测试</button>
+</section>
+
+<!-- 答题 -->
+<section id="quiz" class="page">
+  <div class="progress"><b id="progBar"></b></div>
+  <div class="qnum" id="qNum"></div>
+  <div class="qtext" id="qText"></div>
+  <div id="optBox"></div>
+  <div class="quiz-footer">
+    <button class="back-btn" id="backBtn" onclick="prevQuestion()">← 上一题</button>
+  </div>
+</section>
+
+<!-- 结果 -->
+<section id="result" class="page">
+  <div class="result-wrap" id="resultWrap">
+    <div class="result-brand">Love<i>i</i></div>
+    <div class="result-sub">分手后你是怎样的人</div>
+    <div class="ptype">
+      <div class="name" id="rName"></div>
+      <div class="quote" id="rQuote"></div>
+    </div>
+    <div class="desc" id="rDesc"></div>
+    <!-- [话语] 三个特征标签放在结论下面，再往下才是图和数据 -->
+    <div class="scores" id="rDetail"></div>
+    <div class="radar-box"><canvas id="radar" width="680" height="680"></canvas></div>
+    <div class="scores" id="rScores"></div>
+    <div class="result-actions">
+      <button class="btn ghost" onclick="showOthers()">其他类型</button>
+      <button class="btn" onclick="location.reload()">重新测试</button>
+      <button class="btn" onclick="showPartner()">适合互相舔舐伤口的对象为</button>
+      <button class="btn ghost" onclick="shareResult()">分享给好友</button>
+      <button class="btn ghost" onclick="saveImage()">保存图片</button>
+    </div>
+    <div class="appreciate">
+      <a href="appreciate.png" target="_blank" rel="noopener"><img src="appreciate.png" alt="赞赏码"></a>
+    </div>
+  </div>
+</section>
+
+<!-- 其他类型 -->
+<section id="others" class="page">
+  <div class="others-title">其他类型</div>
+  <div id="othersList"></div>
+  <button class="btn ghost" onclick="backToResult()">← 返回我的结果</button>
+</section>
+
+<!-- 适合对象 -->
+<section id="partner" class="page">
+  <div class="others-title">适合互相舔舐伤口的对象为</div>
+  <div id="partnerCard"></div>
+  <button class="btn ghost" onclick="backToResult()">← 返回我的结果</button>
+</section>
+
+<script>
+/* ================= 维度 ================= */
+const DIMS = ["占有欲","爱意","恨意","悔意","善意","轻浮","回头率","边界感"];
+
+/* 淡然并入边界感，面子/表演并入回头率（保持 8 维雷达图） */
+
+/* ================= 25 道题 ================= */
+/* [题本] 25 题选项按正常人的反应谱系重写：去掉视奸/暗爽/骂回去/点《好运来》这类极端与恶意表达，
+   每题都保留至少一个「祝福/体面/不纠缠」的出口；同一选项内不重复记同一维度。
+   原结构 {q,opts:[[文案,[维度...]],...]}、25 题、每题 4 选项、8 个维度均保持不变。 */
+const QUESTIONS = [
+{q:"对方提出分手",opts:[
+ ["想问清楚原因，把话好好说完再分开",["善意","悔意"]],
+ ["很难过，但尊重对方的决定",["爱意","边界感"]],
+ ["舍不得，想再争取一次",["爱意","悔意"]],
+ ["会反复想，是不是自己哪里做得不够好",["悔意","爱意"]]]},
+{q:"对方把你加了回来",opts:[
+ ["通过，但不太想主动说话",["边界感","恨意"]],
+ ["通过，简单打个招呼，不深聊",["善意","边界感"]],
+ ["会忍不住看看对方最近的动态",["占有欲","爱意"]],
+ ["会觉得对方还惦记自己，心里有点波动",["回头率","爱意"]]]},
+{q:"翻相册看到和对方有关的照片",opts:[
+ ["会难过一会儿，但不会删",["爱意","悔意"]],
+ ["看完感慨一下，好好收起来",["善意","悔意"]],
+ ["不想再看到，顺手整理掉",["边界感","恨意"]],
+ ["留着，偶尔翻一翻",["爱意","占有欲"]]]},
+{q:"刷到讲你们俩星座合不合的视频",opts:[
+ ["当娱乐看看，不太当真",["轻浮","边界感"]],
+ ["会想到对方，但看完就算了",["爱意","边界感"]],
+ ["会想对方看到会怎么想",["占有欲","回头率"]],
+ ["觉得挺准，会琢磨一会儿",["悔意","轻浮"]]]},
+{q:"刷到别人秀恩爱的视频",opts:[
+ ["替他们开心，点个赞就划走",["善意","边界感"]],
+ ["会想起你们以前也这样，有点感慨",["爱意","悔意"]],
+ ["心里会有点不平衡，觉得自己当时没被这样对待",["恨意","悔意"]],
+ ["划走，不太想看",["边界感","轻浮"]]]},
+{q:"对方访问了你的主页",opts:[
+ ["没什么感觉，继续做自己的事",["边界感","轻浮"]],
+ ["会好奇对方为什么来看，但不会问",["占有欲","边界感"]],
+ ["心里有点波动，觉得对方可能还没放下",["回头率","爱意"]],
+ ["也点进对方主页看一眼，算礼尚往来",["轻浮","占有欲"]]]},
+{q:"面对和对方的聊天框",opts:[
+ ["会正常聊几句，像朋友一样",["善意","边界感"]],
+ ["偶尔想发点什么，最后又删掉",["爱意","回头率"]],
+ ["不主动找，有事说事",["边界感","恨意"]],
+ ["会忍不住找话题，多说两句",["爱意","占有欲"]]]},
+{q:"对方的社交主页出现在你眼前",opts:[
+ ["看一眼就过去了",["边界感","轻浮"]],
+ ["会留意对方最近过得怎么样",["爱意","善意"]],
+ ["心里有点堵，觉得对方过得太轻松",["恨意","悔意"]],
+ ["会想自己要不要也发点什么",["回头率","轻浮"]]]},
+{q:"对方说「我早就受够你了」",opts:[
+ ["会难过，但不想吵，先冷静一下",["边界感","悔意"]],
+ ["会生气，觉得对方说得太绝",["恨意","悔意"]],
+ ["会解释，把话说清楚",["善意","悔意"]],
+ ["会反省自己哪里做得不好",["悔意","爱意"]]]},
+{q:"面对对方送你的东西",opts:[
+ ["舍不得扔，好好收着",["爱意","悔意"]],
+ ["收起来放着，也不刻意处理",["边界感"]],
+ ["看着别扭，整理掉",["恨意","边界感"]],
+ ["会想对方看到东西还在会怎么想",["回头率","占有欲"]]]},
+{q:"朋友告诉你，对方最近在接触新的人",opts:[
+ ["祝福对方，觉得这很正常",["善意","边界感"]],
+ ["心里有点不是滋味，但不会做什么",["恨意","悔意"]],
+ ["会想知道那个人是谁、什么样",["占有欲","悔意"]],
+ ["会想自己是不是也该往前走了",["边界感","轻浮"]]]},
+{q:"你在路上偶然遇见了对方",opts:[
+ ["会有点紧张，不知道说什么",["爱意","回头率"]],
+ ["正常打个招呼，聊两句",["善意","边界感"]],
+ ["点头示意就走，不多说",["边界感"]],
+ ["会想对方有没有看到自己",["回头率","占有欲"]]]},
+{q:"深夜很想对方",opts:[
+ ["翻翻以前的聊天记录，过一会儿就睡了",["爱意","悔意"]],
+ ["找朋友聊聊天，把情绪说出来",["爱意","善意"]],
+ ["会想发消息，但基本不会发",["爱意","回头率"]],
+ ["让自己忙点别的，早点睡",["边界感"]]]},
+{q:"对方发了条很丧的朋友圈",opts:[
+ ["会问一句怎么了，能帮就帮",["善意","爱意"]],
+ ["会有点心疼，但不打算介入",["善意","边界感"]],
+ ["会想对方是不是在等我",["占有欲","回头率"]],
+ ["看一眼，不评论",["边界感"]]]},
+{q:"共同朋友办聚会，对方也会去",opts:[
+ ["会稍微收拾一下，不想显得太憔悴",["回头率","爱意"]],
+ ["照常去，见面正常相处",["善意","边界感"]],
+ ["会有点不自在，但也不刻意回避",["边界感","悔意"]],
+ ["会想借这个机会和对方说几句话",["占有欲","回头率"]]]},
+{q:"对方发了条怀念过去的动态",opts:[
+ ["看看就过，不往自己身上想",["边界感","轻浮"]],
+ ["会想是不是在说我",["回头率","悔意"]],
+ ["会有点触动，但不会去问",["爱意","悔意"]],
+ ["会留言一句，希望都好",["善意","边界感"]]]},
+{q:"发现自己被对方拉黑了",opts:[
+ ["能理解，各自清静也好",["善意","边界感"]],
+ ["有点难受，也觉得对方挺绝",["爱意","恨意"]],
+ ["会想为什么，是不是我哪里做错了",["悔意","占有欲"]],
+ ["会通过朋友侧面问一句",["占有欲","回头率"]]]},
+{q:"深夜想找人说话，你发给朋友的第一条消息是",opts:[
+ ["说说今天发生的事，随口聊聊",["边界感","轻浮"]],
+ ["会提到对方，说还是有点想",["爱意","悔意"]],
+ ["会吐槽几句，说完就好",["恨意","轻浮"]],
+ ["不太想说，怕麻烦别人",["边界感"]]]},
+{q:"偶然听到你们以前一起听过的歌",opts:[
+ ["听完，觉得挺好听的",["善意","轻浮"]],
+ ["会停下来听一会儿，想起一些事",["爱意","悔意"]],
+ ["立刻切掉，不太想听",["边界感","恨意"]],
+ ["会想对方现在还会不会听",["占有欲","爱意"]]]},
+{q:"凌晨收到对方一句「睡了吗」",opts:[
+ ["第二天正常回一句，问怎么了",["善意","边界感"]],
+ ["会回，但会控制住不聊太久",["边界感","爱意"]],
+ ["会想对方是不是想复合，心里有起伏",["回头率","悔意"]],
+ ["会聊到很晚，把想说的说完",["爱意","占有欲"]]]},
+{q:"如果能回到恋爱期间",opts:[
+ ["好好相处，把该说的话说清楚",["善意","悔意"]],
+ ["多留下一些一起的记录",["爱意","善意"]],
+ ["该分开的时候早点分开",["边界感","悔意"]],
+ ["会更注意自己的问题，少些任性",["悔意","爱意"]]]},
+{q:"相册自动推送了「一年前的今天」，全是你们俩",opts:[
+ ["看完感慨一下，然后收起来",["善意","悔意"]],
+ ["会看很久，心里不好受",["爱意","悔意"]],
+ ["划过去，不太想看",["边界感","恨意"]],
+ ["会想发给对方，或者发出去",["回头率","占有欲"]]]},
+{q:"对方现在的状态很糟",opts:[
+ ["希望对方能好起来",["善意","边界感"]],
+ ["会有点心疼，但不会去管",["善意","爱意"]],
+ ["会想对方是不是需要人陪",["爱意","占有欲"]],
+ ["觉得这是对方自己的事，与我无关",["边界感","轻浮"]]]},
+{q:"几个月后，朋友说对方其实还喜欢你",opts:[
+ ["知道了，继续过自己的日子",["边界感"]],
+ ["心里会动一下，但不会主动",["爱意","回头率"]],
+ ["会想那我们还有没有可能",["悔意","爱意"]],
+ ["会想对方为什么不自己来说",["恨意","占有欲"]]]},
+{q:"如果给这段感情下个定义",opts:[
+ ["一段好的经历，祝彼此都好",["善意","边界感"]],
+ ["有遗憾，但也学到了很多",["悔意","善意"]],
+ ["就是一段普通的感情，过去了",["边界感","轻浮"]],
+ ["还是会想，如果当时不一样",["爱意","悔意"]]]}
+];
+
+/* ================= 8 种人格 ================= */
+/* [话语] 8 段固定文案改为短句 + 具体表现，看完能说清"这说的是什么"；
+   同时去掉「辱追」「无情道」「用最恶毒的话骂对方」这类刻薄说法。 */
+const TYPES = {
+ "恨海情天":{color:"#C0392B",title:"恨海情天 · 爱和恨都还没散",
+   quote:"嘴上说不在乎，眼睛还盯着对方。",
+   desc:"你对这段关系还有气。嘴上说早就放下了，实际会留意对方的一举一动：对方过得差，你心软；过得好，你又堵得慌。恨和在意其实是一件事，你只是不太愿意承认后半句。"},
+ "面子大过天":{color:"#E1B12C",title:"面子大过天 · 想找，但拉不下脸",
+   quote:"不是不想找，是怕先开口就输了。",
+   desc:"你其实还想联系对方，但更怕先开口会显得自己输了。会发一些只有对方看得懂的内容，等一个回应；等不到，就继续装作没事。你难受的时候不会说，只会反复点开那个对话框。"},
+ "冷漠系":{color:"#5DADE2",title:"冷漠系 · 已经翻篇了",
+   quote:"对方的事，已经牵不动你了。",
+   desc:"分开之后，对方的事基本牵不动你。看到对方的消息没有起伏，也不想再解释什么，更不会为了显得体面而假装难过。你不是在硬撑，是真的过去了。"},
+ "后悔系":{color:"#8E6FC7",title:"后悔系 · 早知道不那样说",
+   quote:"反复回到分开那天，想改一句台词。",
+   desc:"你反复回到分开那天，想如果当时换一种说法会不会不一样。看到对方过得不错，会再难受一点；但真让你去联系，又觉得没脸。遗憾留在原地，人也没往前走。"},
+ "淡系":{color:"#7DBB8A",title:"淡系 · 记得好，不纠缠",
+   quote:"不联系，也不打扰。",
+   desc:"你不想再翻旧账，也不想复合。想起对方时更多是感谢，不是不甘；别人问起，你能很自然地说一句「都过去了」。偶尔会感慨，但不影响你继续过自己的日子。"},
+ "痴情系":{color:"#7B1F1F",title:"痴情系 · 还是停不下来想对方",
+   quote:"关系断了，注意力还留在原地。",
+   desc:"这段关系在你这里还没结束。会反复点开对方的主页，留意对方身边有没有新的人，手机里还留着大量关于对方的记录。你知道这样不好，但停下来更难。"},
+ "轻浮系":{color:"#E88CA8",title:"轻浮系 · 没太当真",
+   quote:"分开就分开，没什么好交代的。",
+   desc:"你没太把这段感情当成一件需要交代的事。分开就分开了，很快回到自己的节奏，也不觉得要难过很久。别人说你冷，你只是不想把一段关系看得太重。"},
+ "表演系":{color:"#E8E0C9",title:"表演系 · 演着演着习惯了",
+   quote:"难过有一半，是演给别人看的。",
+   desc:"你在别人面前把这段感情说得很重，朋友圈和聊天里都是舍不得。但一个人待着的时候，其实没那么难过——你更享受被当成「深情的人」的那种感觉。"}
+};
+
+/* 维度 → 人格映射（按最高分维度判定） */
+const DIM_TO_TYPE = {
+ "占有欲":"面子大过天","爱意":"痴情系","恨意":"恨海情天","悔意":"后悔系",
+ "善意":"淡系","轻浮":"轻浮系","回头率":"表演系","边界感":"冷漠系"
+};
+
+/* [P2] 各维度可得分机会数：题库里含该维度的选项数，用于消除题本分布偏差 */
+const OPP = (()=>{
+  const o={}; DIMS.forEach(d=>o[d]=0);
+  QUESTIONS.forEach(q=>q.opts.forEach(opt=>new Set(opt[1]).forEach(d=>o[d]++)));
+  return o;
+})();
+
+/* [判定] 按机会数折算后取最高维度；平局由答案决定，不再由 DIMS 书写顺序决定。
+   折算用 OPP 的 0.75 次方而不是 1 次方：完全按比例折算会让「机会少」的维度方差过大、
+   经常被随机顶到第一（原来总出淡系就是这个原因），0.75 是偏向度与稳定性的折中。 */
+function pickTop(s, ans){
+  const norm = {};
+  DIMS.forEach(d=>norm[d]=(s[d]||0)/Math.pow(Math.max(1,OPP[d]),0.75));
+  const max = Math.max(...DIMS.map(d=>norm[d]));
+  const tied = DIMS.filter(d=>Math.abs(norm[d]-max)<1e-9);
+  if(tied.length===1) return tied[0];
+  const seed = ans.reduce((a,v,i)=>a+(v+2)*(i+7),0);
+  return tied[Math.abs(seed)%tied.length];
+}
+
+/* [话语] 8 个维度按同一口径排序，供正文和标签复用 */
+function dimRank(s){
+  return DIMS.slice().sort((a,b)=>
+    ((s[b]||0)/Math.pow(Math.max(1,OPP[b]),0.75)) - ((s[a]||0)/Math.pow(Math.max(1,OPP[a]),0.75))
+  );
+}
+
+/* [综合] 25 题按情境分组，把每一题实际选中的选项串成叙述 */
+/* [题本] 分组名与重写后的题干一一对应，按情境划分（组大小不要求均等） */
+const TOPICS = [
+  {name:"刚分开的那段日子", a:0, b:5},
+  {name:"隔着屏幕看对方", a:5, b:9},
+  {name:"旧物、对方的新关系、偶遇", a:9, b:12},
+  {name:"深夜、对方的低落、共同朋友的聚会", a:12, b:15},
+  {name:"回忆、拉黑和说不出口的话", a:15, b:20},
+  {name:"回头看这段关系", a:20, b:25}
+];
+
+/* [话语] 每个维度一句人话，用于结果页的短句和标签 */
+const TRAIT = {
+  "占有欲":"想知道对方的一切",
+  "爱意":"还在意，放不下",
+  "恨意":"气还没消",
+  "悔意":"总在想如果当时",
+  "善意":"希望对方过得好",
+  "轻浮":"不太当真",
+  "回头率":"在意对方怎么看你",
+  "边界感":"不想再越界"
+};
+
+/* [话语] 结果页两句话说完：你是哪一类 + 最突出的两点，不再堆长段落 */
+const TYPE_LINE = {
+  "痴情系":"关系断了，注意力还留在原地。",
+  "淡系":"记得好，但不纠缠。",
+  "冷漠系":"对方的事已经不太能牵动你了。",
+  "后悔系":"总在回头看那个岔口。",
+  "面子大过天":"想找对方，又拉不下脸。",
+  "恨海情天":"爱和恨都还没散。",
+  "轻浮系":"没太把这段当成一件要交代的事。",
+  "表演系":"难过的部分，有一半是给人看的。"
+};
+
+function buildResultText(typeName, s, ans){
+  const picked = ans.filter(v=>typeof v==="number" && v>=0).length;
+  if(!picked) return "25 题都跳过了，先回去做一遍才有结果。";
+  const rank = dimRank(s);
+  return "你是「"+typeName+"」。25 题里最突出的是「"+TRAIT[rank[0]]+"」，其次是「"+TRAIT[rank[1]]+"」。"+
+    TYPE_LINE[typeName];
+}
+
+/* [话语] 结果页补充区：3 个标签 + 必要的提醒，不再逐题复述 */
+function buildAnalysis(s, ans, typeName){
+  const picked = ans.filter(v=>typeof v==="number" && v>=0).length;
+  if(!picked) return "";
+  const rank = dimRank(s);
+  const sc = d => (s[d]||0)/Math.pow(Math.max(1,OPP[d]),0.75);
+  const chips = rank.slice(0,3).map(d=>'<span class="chip">'+TRAIT[d]+'</span>').join("");
+  const notes = [];
+  if(sc(rank[0]) - sc(rank[1]) < 0.06) notes.push("前两项很接近，换一两题就会变成另一种。");
+  const skipped = QUESTIONS.length - picked;
+  if(skipped) notes.push("跳过了 "+skipped+" 题，结果会偏松一点。");
+  return '<div class="kw">'+chips+'</div>'+
+    (notes.length ? '<div class="note">'+notes.join('')+'</div>' : "");
+}
+
+/* 适合互相舔舐伤口的对象（互补配对） */
+const PARTNER = {
+ "恨海情天":"淡系",       /* 淡系的钝感力接得住恨海情天的撕裂 */
+ "面子大过天":"痴情系",   /* 痴情系会主动递台阶，面子系敢滑下去 */
+ "冷漠系":"轻浮系",       /* 都不逼对方认真，压力为零的相处 */
+ "后悔系":"表演系",       /* 表演系的体面接住后悔系的眼泪 */
+ "淡系":"恨海情天",
+ "痴情系":"面子大过天",
+ "轻浮系":"冷漠系",
+ "表演系":"后悔系"
+};
+
+/* 为什么适合互相舔舐伤口 */
+const PAIR_REASON = {
+ "恨海情天|淡系":"恨海情天的人把所有注意力都烧在对方身上，情绪永远在燃烧和崩溃之间反复；而淡系的人已经学会了不纠缠、不追问、不内耗。淡系不会去接住恨海情天的恨，但会用自己的钝感力把那些汹涌的情绪轻轻挡回去——不评判、不回应攻击、也不被拖进战场。恨海情天在淡系身边第一次发现，原来情绪可以不用被回应也能平息，恨着恨着就没力气了；淡系则在这段关系里重新确认，自己确实已经放下了。两个人一个在发泄、一个在见证，伤口就都晾在阳光下慢慢结痂。",
+ "面子大过天|痴情系":"面子大过天的人最大的死穴是开不了口：明明想找对方，却死守着只要你不开口我就没输的规则；而痴情系最不缺的就是主动——会不停发消息、会递台阶、会用自己的纠缠替对方解决掉全部的主动性难题。痴情系负责迈出那一步，面子大过天负责顺势滑下去，一个敢追、一个敢接，谁都不用违背自己的原则。两个人都在等，又都不承认在等，恰好对方就是那个答案。",
+ "冷漠系|轻浮系":"冷漠系的心已经关门，最怕的就是对方认真——对方一认真，冷漠系就要被迫处理自己早已不存在的感情；而轻浮系恰恰是那种谁先认真谁就输、自己从没上过牌桌的人。轻浮系给冷漠系的是零压力：不逼承诺、不谈未来、哭了自己擦；冷漠系给轻浮系的是零负担：不查岗、不内耗、走了不回头。两个人都不打算对彼此负责，反而都松了一口气——这对彼此都好，不是吗？",
+ "后悔系|表演系":"后悔系的生活被眼泪填满，每天都在失眠的夜里幻想回到过去，情绪浓到化不开；而表演系最擅长的就是把痛苦演得体面、漂亮、有观众缘。表演系会用一套成熟的深情人设示范怎么优雅地难过，后悔系在旁边看着看着，就学会了一半——原来悲伤也可以不那么狼狈。反过来，表演系在人前演完、卸了妆空无一人的时候，后悔系的真实恰好填补了那场戏散场后的空虚。一个需要出口，一个需要观众，正好互相成全。"
+};
+
+/* ================= 状态 ================= */
+let current = 0;
+let myType = null;
+let myDesc = "";
+let scores = {};
+let answers = [];
+
+function show(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0,0);
+}
+
+/* ================= 游玩统计（Abacus 计数服务） ================= */
+function track(key){ return; /* 离线版：不发送任何统计 */
+  try{
+    fetch("https://abacus.jasoncameron.dev/hit/lovei_test/" + key).catch(()=>{});
+  }catch(e){}
+}
+function fetchCount(key, el){ return; /* 离线版：不请求在线人数 */
+  try{
+    fetch("https://abacus.jasoncameron.dev/get/lovei_test/" + key)
+      .then(r=>r.json()).then(d=>{
+        if(d && typeof d.value === "number") el.textContent = "已有 " + (d.value + 1023) + " 人测过";
+      }).catch(()=>{});
+  }catch(e){}
+}
+
+/* ================= 站点埋点（发送到 /api/track） ================= */
+const SID = (()=>{
+  try{
+    let s = sessionStorage.getItem("lovei_sid");
+    if(!s){ s = Date.now().toString(36) + Math.random().toString(36).slice(2,8); sessionStorage.setItem("lovei_sid", s); }
+    return s;
+  }catch(e){ return "anon"; }
+})();
+function beacon(type, extra){ return; /* 离线版：不上传答题数据 */
+  try{
+    const body = JSON.stringify(Object.assign({type:type, sid:SID, q:current+1}, extra||{}));
+    /* 保留 sharecode 等访问参数，避免被网关拦截 */
+    const api = function(p){
+      const sc = new URLSearchParams(location.search).get("sharecode");
+      return p + (sc ? (p.indexOf("?") > -1 ? "&" : "?") + "sharecode=" + encodeURIComponent(sc) : "");
+    };
+    if(navigator.sendBeacon){
+      navigator.sendBeacon(api("/api/track"), new Blob([body], {type:"application/json"}));
+    } else {
+      fetch(api("/api/track"), {method:"POST", headers:{"Content-Type":"application/json"}, body:body, keepalive:true}).catch(()=>{});
+    }
+  }catch(e){}
+}
+
+function startQuiz(){
+  track("plays");
+  beacon("start");
+  current = 0; scores = {}; DIMS.forEach(d=>scores[d]=0); answers = [];
+  show("quiz"); renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById("qNum").textContent = "Q" + (current+1) + " / " + QUESTIONS.length;
+  document.getElementById("qText").textContent = q.q;
+  const box = document.getElementById("optBox");
+  box.innerHTML = "";
+  q.opts.forEach((opt,i)=>{
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = '<span class="tag">'+String.fromCharCode(65+i)+'</span>'+opt[0];
+    /* [P1] 回退到已答题目时回显上次的选择，避免"不知道自己选了什么" */
+    if(answers[current]===i){ b.style.borderColor="var(--ink)"; b.style.background="#f2f0ec"; }
+    b.onclick = ()=>selectOption(i);
+    box.appendChild(b);
+  });
+  /* [P1] 四个选项都不像自己时可跳过，不必硬选一个 */
+  const skip = document.createElement("button");
+  skip.className = "opt";
+  skip.innerHTML = '<span class="tag">—</span>以上都不太像我，跳过这题';
+  if(answers[current]===-1){ skip.style.borderColor="var(--ink)"; skip.style.background="#f2f0ec"; }
+  skip.onclick = ()=>skipQuestion();
+  box.appendChild(skip);
+  document.getElementById("progBar").style.width = (current/QUESTIONS.length*100)+"%";
+  document.getElementById("backBtn").classList.toggle("show", current>0);
+}
+
+function selectOption(i){
+  beacon("click", {q:current+1});
+  answers[current] = i;
+  /* [P2] 同一选项里重复的维度只计 1 分，避免"边界感×2"这类选项被双倍放大 */
+  const tags = [...new Set(QUESTIONS[current].opts[i][1])];
+  /* 先扣掉该题旧答案的分（改答案场景） */
+  if(answers._scored && answers._scored[current]){
+    answers._scored[current].forEach(d=>scores[d]--);
+  }
+  tags.forEach(d=>scores[d]++);
+  (answers._scored = answers._scored || [])[current] = tags;
+
+  if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+  else { showResult(); }
+}
+
+/* [P1] 跳过该题：不计分、记为 -1，仍可回退重选 */
+function skipQuestion(){
+  beacon("skip", {q:current+1});
+  if(answers._scored && answers._scored[current]){
+    answers._scored[current].forEach(d=>scores[d]--);
+    delete answers._scored[current];
+  }
+  answers[current] = -1;
+  if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+  else { showResult(); }
+}
+
+function prevQuestion(){
+  if(current>0){ current--; renderQuestion(); }
+}
+
+/* ================= 结果 ================= */
+function showResult(){
+  /* [判定] 类型改由「行为主线」决定：先看 25 题里哪种反应最多，再看这个方向里哪一维最突出。
+     旧逻辑只比较单一维度的折算比例，会出现"20 次选择靠近对方、却判成淡系"的矛盾结果，
+     而且「边界感最高且善意≥4 就判淡系」这条规则会把大量温和作答一律吸进淡系。 */
+  /* [判定] 类型仍由「折算后最突出的维度」决定（DIM_TO_TYPE 映射不变），
+     只是折算从 1 次方改成 0.75 次方，避免总被判成同一类。 */
+  const typeName = DIM_TO_TYPE[pickTop(scores, answers)];
+  myType = typeName;
+  const s = scores;
+  beacon("complete", {result:typeName, q:QUESTIONS.length});
+  const TYPE_KEY = {"恨海情天":"henhai","面子大过天":"mianzi","冷漠系":"lengmo","后悔系":"houhui","淡系":"danxi","痴情系":"chiqing","轻浮系":"qingfu","表演系":"biaoyan"};
+  track("type_" + (TYPE_KEY[typeName] || "other"));
+
+  const t = TYPES[typeName];
+  const wrap = document.getElementById("resultWrap");
+  wrap.style.background = "#ffffff";
+  wrap.style.borderTop = "none";
+  document.getElementById("rName").textContent = t.title;
+  document.getElementById("rQuote").textContent = "";
+  /* 分数条 */
+  const max = Math.max(...DIMS.map(d=>s[d]),1);
+  document.getElementById("rScores").innerHTML = DIMS.map(d=>
+    '<div class="score-row" style="color:#6b6b70"><span class="k" style="color:var(--ink)">'+d+'</span>'+
+    '<span class="bar"><b style="width:'+(s[d]/max*100)+'%"></b></span>'+
+    '<span class="v" style="color:var(--ink)">'+s[d]+'</span></div>').join("");
+  /* [话语] 主段落按本人选择生成；TYPES.desc 的固定文案只在「查看其他类型」里出现 */
+  myDesc = buildResultText(typeName, s, answers);
+  document.getElementById("rDesc").textContent = myDesc;
+  drawRadar(s, t.color);
+  /* [综合] 下方按情境逐题展开，25 个选择一条不漏 */
+  const detail = document.getElementById("rDetail");
+  detail.style.display = "";
+  detail.innerHTML = buildAnalysis(s, answers, typeName);
+  show("result");
+}
+
+function drawRadar(s,color){
+  const c = document.getElementById("radar"), ctx = c.getContext("2d");
+  const W=c.width, cx=W/2, cy=W/2, R=W*0.32, n=DIMS.length;
+  ctx.clearRect(0,0,W,W);
+  const angle=i=>Math.PI*2*i/n - Math.PI/2;
+  /* 网格 */
+  for(let ring=1;ring<=4;ring++){
+    ctx.beginPath();
+    for(let i=0;i<=n;i++){
+      const a=angle(i%n), r=R*ring/4;
+      i?ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    }
+    ctx.strokeStyle="rgba(0,0,0,.35)";ctx.lineWidth=1.5;ctx.stroke();
+  }
+  /* 轴线+标签 */
+  ctx.font="600 26px -apple-system,'PingFang SC',sans-serif";
+  for(let i=0;i<n;i++){
+    const a=angle(i);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+    ctx.strokeStyle="rgba(0,0,0,.35)";ctx.stroke();
+    const lx=cx+(R+42)*Math.cos(a), ly=cy+(R+42)*Math.sin(a);
+    ctx.fillStyle="#1c1c1e";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText(DIMS[i],lx,ly);
+  }
+  /* 数据区 */
+  const max=Math.max(...DIMS.map(d=>s[d]),1);
+  ctx.beginPath();
+  DIMS.forEach((d,i)=>{
+    const a=angle(i), r=R*(s[d]/max);
+    i?ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+  });
+  ctx.closePath();
+  ctx.fillStyle="rgba(0,0,0,.06)";ctx.fill();
+  ctx.strokeStyle="#6b6b70";ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle="#6b6b70";
+  DIMS.forEach((d,i)=>{
+    const a=angle(i), r=R*(s[d]/max);
+    ctx.beginPath();ctx.arc(cx+r*Math.cos(a),cy+r*Math.sin(a),6,0,Math.PI*2);ctx.fill();
+  });
+}
+
+/* ================= 其他类型 ================= */
+function showOthers(){
+  beacon("click", {q:0});
+  const list = document.getElementById("othersList");
+  list.innerHTML = Object.keys(TYPES).map(k=>{
+    const t=TYPES[k];
+    return '<div class="type-card" style="--c:#e05a6d" onclick="viewType(\''+k+'\')">'+
+      '<h3>'+t.title+'</h3></div>';
+  }).join("");
+  show("others");
+}
+function viewType(k){
+  const t=TYPES[k];
+  const wrap=document.getElementById("resultWrap");
+  wrap.style.background="#ffffff";
+  wrap.style.borderTop="none";
+  document.getElementById("rName").textContent=t.title;
+  document.getElementById("rQuote").textContent="";
+  document.getElementById("rDesc").textContent=t.desc;
+  document.getElementById("rScores").style.display="none";
+  /* [P3] 查看其他类型时不显示本人的解读 */
+  document.getElementById("rDetail").style.display="none";
+  document.getElementById("radar").parentElement.style.display="none";
+  show("result");
+}
+/* [P3] 返回时恢复本人的解读 */
+/* [话语] 顺手修掉「看完其他类型再返回」时标题/正文/分数条没还原的问题 */
+function backToResult(){
+  if(myType){
+    document.getElementById("rName").textContent = TYPES[myType].title;
+    document.getElementById("rDesc").textContent = myDesc || TYPES[myType].desc;
+    document.getElementById("rScores").style.display = "";
+    document.getElementById("radar").parentElement.style.display = "";
+  }
+  document.getElementById("rDetail").style.display = "";
+  show("result");
+}
+
+/* ================= 适合互相舔舐伤口的对象 ================= */
+/* ================= 分享 ================= */
+/* ================= 保存结果图片 ================= */
+function saveImage(){
+  if(!myType){ toast("请先完成测试"); return; }
+  const t = TYPES[myType];
+  /* [话语] 保存的结果图用本人生成的那段，不再用 8 段固定文案 */
+  const descText = myDesc || t.desc;
+  const W = 750, PAD = 56;
+  const tmp = document.createElement("canvas");
+  const ctx0 = tmp.getContext("2d");
+  /* 先量算描述高度 */
+  ctx0.font = "25px -apple-system,'PingFang SC',sans-serif";
+  const descLines = wrapText(ctx0, descText, W - PAD*2);
+  const NAME_H = 96, SUB_H = 42, HEAD_H = 300, GAP = 34;
+  const RADAR = 470, DESC_H = descLines.length * 42;
+  const FOOT = 130;
+  const H = HEAD_H + NAME_H + GAP + DESC_H + GAP + RADAR + GAP + 40 + FOOT;
+
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,W,H);
+
+  /* 顶部 Logo */
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.font = "800 86px -apple-system,'PingFang SC',sans-serif";
+  const logo = "Love", lw = ctx.measureText(logo).width;
+  const sx = W/2 - (lw + 40)/2;
+  ctx.textAlign = "left"; ctx.fillStyle = "#1c1c1e";
+  ctx.fillText(logo, sx, 140);
+  ctx.fillStyle = "#e05a6d";
+  ctx.fillText("i", sx + lw, 140);
+  ctx.textAlign = "center";
+  ctx.font = "600 28px -apple-system,'PingFang SC',sans-serif";
+  ctx.fillStyle = "#1c1c1e";
+  ctx.fillText("分手后你是怎样的人", W/2, 196);
+
+  /* 人格名 */
+  let y = HEAD_H;
+  ctx.font = "800 42px -apple-system,'PingFang SC',sans-serif";
+  ctx.fillStyle = "#1c1c1e";
+  ctx.fillText(t.title, W/2, y);
+  y += GAP;
+
+  /* 描述 */
+  ctx.font = "25px -apple-system,'PingFang SC',sans-serif";
+  ctx.textAlign = "left"; ctx.fillStyle = "#3a3a3c";
+  descLines.forEach((line,i)=>{
+    const indent = i===0 ? 50 : 0;
+    ctx.fillText(line, PAD + indent, y + i*42);
+  });
+  y += DESC_H + GAP;
+
+  /* 雷达图 */
+  const rc = document.getElementById("radar");
+  const size = RADAR;
+  ctx.drawImage(rc, W/2 - size/2, y - 40, size, size);
+  y += size - 40 + GAP;
+
+  /* 维度分数 */
+  const max = Math.max(...DIMS.map(d=>scores[d]),1);
+  ctx.font = "22px -apple-system,'PingFang SC',sans-serif";
+  DIMS.forEach((d,i)=>{
+    const row = Math.floor(i/2), col = i%2;
+    const bx = PAD + col*((W-PAD*2)/2), by = y + row*46;
+    ctx.textAlign = "left"; ctx.fillStyle = "#1c1c1e";
+    ctx.fillText(d, bx, by);
+    const barX = bx + 86, barW = (W-PAD*2)/2 - 130;
+    ctx.fillStyle = "#ececec"; ctx.fillRect(barX, by-12, barW, 12);
+    ctx.fillStyle = "#6b6b70"; ctx.fillRect(barX, by-12, barW*(scores[d]/max), 12);
+    ctx.fillStyle = "#6b6b70"; ctx.textAlign = "right";
+    ctx.fillText(String(scores[d]), bx + (W-PAD*2)/2 - 8, by);
+  });
+  y += 4*46 + 30;
+
+  /* 页脚 */
+  ctx.textAlign = "center"; ctx.font = "20px -apple-system,'PingFang SC',sans-serif";
+  ctx.fillStyle = "#8a8a8e";
+  ctx.fillText("Lovei · 分手后你是怎样的人", W/2, H - 46);
+
+  const url = location.origin + location.pathname + location.search;
+  const a = document.createElement("a");
+  a.download = "Lovei-" + myType + ".png";
+  a.href = cv.toDataURL("image/png");
+  a.click();
+  toast("结果图片已保存");
+}
+
+function wrapText(ctx, text, maxW){
+  const lines = []; let line = "";
+  for(const ch of text){
+    /* [话语] 生成的正文用空行分段，这里把换行转成断行（连续换行只留一个空行） */
+    if(ch === "\n"){
+      if(line !== "" || (lines.length && lines[lines.length-1] !== "")) lines.push(line);
+      line = "";
+      continue;
+    }
+    if(ctx.measureText(line + ch).width > maxW){ lines.push(line); line = ch; }
+    else line += ch;
+  }
+  if(line) lines.push(line);
+  return lines;
+}
+
+function shareResult(){
+  beacon("click", {q:0});
+  const url = location.origin + location.pathname + location.search;
+  const text = "我的 Lovei 结果是「" + (myType || "") + "」，分手后你是怎样的人？来测测看。";
+  if(navigator.share){
+    navigator.share({title:"Lovei · 分手后你是怎样的人", text:text, url:url}).catch(()=>{});
+  } else {
+    const full = text + " " + url;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(full).then(()=>toast("链接已复制，去粘贴给好友吧")).catch(()=>prompt("复制下面链接分享给好友：",full));
+    } else {
+      prompt("复制下面链接分享给好友：",full);
+    }
+  }
+}
+function toast(msg){
+  let el = document.getElementById("toast");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "toast";
+    el.style.cssText = "position:fixed;left:50%;bottom:12%;transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;z-index:999;transition:opacity .25s";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg; el.style.opacity = "1";
+  clearTimeout(el._t); el._t = setTimeout(()=>{ el.style.opacity = "0"; }, 1800);
+}
+
+function showPartner(){
+  if(!myType) return;
+  const p = PARTNER[myType], t = TYPES[p];
+  document.getElementById("partnerCard").innerHTML =
+    '<div class="type-card" style="--c:#e05a6d;cursor:default;border-left-width:6px">'+
+    '<h3>'+t.title+'</h3>'+
+    '<p style="color:var(--ink);margin-top:10px;text-indent:2em">'+t.desc+'</p>'+
+    '</div>';
+  show("partner");
+}
+
+/* 页面浏览埋点 */
+beacon("view");
+</script>
+</body>
+</html>
