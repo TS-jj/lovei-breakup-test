@@ -99,10 +99,28 @@
   .type-card h3{font-size:18px;font-weight:700}
   .type-card p{font-size:13px;color:var(--sub);margin-top:6px;line-height:1.6}
 
-  /* ---------- 赞赏 ---------- */
-  .appreciate{margin-top:36px;text-align:center}
-  .appreciate img{width:min(52vw,220px);border-radius:10px;display:block;margin:0 auto;cursor:zoom-in}
-  .appreciate p{font-size:14px;color:var(--sub);margin-top:12px}
+  /* ---------- 赞赏：收成一行小字入口，点开才是二维码 ---------- */
+  .tip-link{
+    display:block;margin:34px auto 0;padding:8px 10px;background:none;border:none;
+    color:var(--sub);font-size:13px;cursor:pointer;
+    text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(0,0,0,.16);
+  }
+  .tip-link:active{color:var(--ink)}
+  .tip-mask{
+    position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;
+    background:rgba(20,20,22,.45);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+  }
+  .tip-mask.show{display:flex}
+  .tip-card{
+    width:min(88vw,320px);background:var(--card);border-radius:18px;padding:22px 22px 18px;
+    text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.22);
+    animation:tipIn .18s ease;
+  }
+  @keyframes tipIn{from{transform:translateY(10px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+  .tip-card h3{font-size:17px;font-weight:700}
+  .tip-card img{width:100%;max-width:230px;display:block;margin:14px auto 0;border-radius:12px}
+  .tip-card .tip-sub{font-size:12px;color:var(--sub);margin-top:12px;line-height:1.7}
+  .tip-card .btn{margin-top:16px;font-size:15px;padding:13px}
 
   @media (min-width:768px){
     .page{padding-top:48px}
@@ -154,9 +172,8 @@
       <button class="btn ghost" onclick="shareResult()">分享给好友</button>
       <button class="btn ghost" onclick="saveImage()">保存图片</button>
     </div>
-    <div class="appreciate">
-      <a href="appreciate.png" target="_blank" rel="noopener"><img src="appreciate.png" alt="赞赏码"></a>
-    </div>
+    <!-- [赞赏] 不再直接把二维码摊在页面底部，收成一行小字，点开才显示 -->
+    <button class="tip-link" onclick="openTip()">喜欢这个测试？请作者喝杯奶茶</button>
   </div>
 </section>
 
@@ -173,6 +190,17 @@
   <div id="partnerCard"></div>
   <button class="btn ghost" onclick="backToResult()">← 返回我的结果</button>
 </section>
+
+<!-- [赞赏] 弹层：默认隐藏，点结果页底部那行小字才出现 -->
+<div class="tip-mask" id="tipMask" onclick="closeTip()">
+  <div class="tip-card" onclick="event.stopPropagation()">
+    <h3>谢谢你的喜欢</h3>
+    <img src="appreciate.png" alt="微信赞赏码" onerror="this.style.display='none';document.getElementById('tipFallback').style.display='block'">
+    <div class="tip-sub" id="tipFallback" style="display:none">赞赏码图片没找到，把它放到和网页同一个文件夹里就能显示。</div>
+    <div class="tip-sub">微信扫码 · 金额随意 · 完全自愿<br>不赞赏也能看到全部结果</div>
+    <button class="btn ghost" onclick="closeTip()">关闭</button>
+  </div>
+</div>
 
 <script>
 /* ================= 维度 ================= */
@@ -398,7 +426,7 @@ const TRAIT = {
   "边界感":"不想再越界"
 };
 
-/* [话语] 结果页两句话说完：你是哪一类 + 最突出的两点，不再堆长段落 */
+/* [话语] 结果页：四小段说完——类型、依据、你的原话、一句提醒；不堆长段落 */
 const TYPE_LINE = {
   "痴情系":"关系断了，注意力还留在原地。",
   "淡系":"记得好，但不纠缠。",
@@ -410,12 +438,79 @@ const TYPE_LINE = {
   "表演系":"难过的部分，有一半是给人看的。"
 };
 
+/* [话语] 每种类型再补一句落在行为上的话，让正文有内容但不冗长 */
+const TYPE_EXTRA = {
+  "痴情系":"你的日常里还留着对方的痕迹，翻记录、看主页、绕路经过老地方；这股劲不是坏事，但容易把自己困在原地。",
+  "淡系":"你把这段关系放回了它该在的位置：偶尔想起会感慨，但不会再为它改掉今天的安排。",
+  "冷漠系":"不是没认真过，是情绪已经收干净了；再提起时，你能像说别人的事一样讲完。",
+  "后悔系":"你反复回放的是某个具体瞬间——当时换一句话、少赌一次气，会不会就不一样。",
+  "面子大过天":"你在等一个不用先低头的机会；可对方多半也在等，于是两个人一起停在原地。",
+  "恨海情天":"你在恨和想念之间来回切换，越是证明自己不在意，越说明这件事还没过去。",
+  "轻浮系":"你不太愿意把这段关系看得太重，用玩笑把它带过去，比认真面对轻松。",
+  "表演系":"你更在意别人怎么看你走出来这件事，真实的感受反而排在后面。"
+};
+
+/* [话语] 主导倾向对应的那句推断，替换掉逐题复述 */
+const EVID_LINE = {
+  "占有欲":"这些选择指向同一件事：你还想知道对方在做什么、和谁在一起。",
+  "爱意":"这些选择说明对方在你心里还有位置，不是一句「都过去了」能盖住的。",
+  "恨意":"这些选择里带着没消化的情绪，你对这段关系并不是真的无感。",
+  "悔意":"这些选择里反复出现「如果当时」，你还在回看那个岔口。",
+  "善意":"这些选择里几乎没有攻击性，你更愿意让对方体面地往前走。",
+  "轻浮":"这些选择多半是玩笑和带过，你不太愿意把情绪摊开给人看。",
+  "回头率":"这些选择里，你在意对方（和别人）怎么看你，多过你自己怎么想。",
+  "边界感":"这些选择都在收：不追问、不打扰，把线划清楚。"
+};
+
+/* [话语] 从答过的题里挑 2 道与主导倾向相关的，引用原话做证据 */
+function pickEvidence(ans, dim, k){
+  const hit = [];
+  for(let i=0;i<QUESTIONS.length;i++){
+    const v = ans[i];
+    if(typeof v!=="number" || v<0) continue;
+    if(new Set(QUESTIONS[i].opts[v][1]).has(dim)) hit.push(i);
+  }
+  if(!hit.length) return "";
+  const step = hit.length > k ? Math.floor(hit.length/k) : 1;
+  const picked = [];
+  for(let i=0;i<hit.length && picked.length<k;i+=step) picked.push(hit[i]);
+  return picked.map(i=>'第 '+(i+1)+' 题「'+QUESTIONS[i].opts[ans[i]][0]+'」').join("、");
+}
+
 function buildResultText(typeName, s, ans){
   const picked = ans.filter(v=>typeof v==="number" && v>=0).length;
   if(!picked) return "25 题都跳过了，先回去做一遍才有结果。";
   const rank = dimRank(s);
-  return "你是「"+typeName+"」。25 题里最突出的是「"+TRAIT[rank[0]]+"」，其次是「"+TRAIT[rank[1]]+"」。"+
-    TYPE_LINE[typeName];
+  const top = rank[0], second = rank[1];
+  const sc = d => (s[d]||0)/Math.pow(Math.max(1,OPP[d]),0.75);
+
+  /* 每个维度在已选选项里出现的次数，比原始分更好读 */
+  const cnt = {};
+  DIMS.forEach(d=>cnt[d]=0);
+  ans.forEach((v,i)=>{
+    if(typeof v==="number" && v>=0) new Set(QUESTIONS[i].opts[v][1]).forEach(d=>cnt[d]++);
+  });
+
+  /* 只给主导项的次数：次高项的次数常常更大（它机会更多），一起报会自相矛盾 */
+  const p1 = "你是「"+typeName+"」。把 25 个选择按维度折算后，最突出的是「"+TRAIT[top]+"」（"+cnt[top]+" 次），其次是「"+
+    TRAIT[second]+"」。";
+
+  const evid = pickEvidence(ans, top, 2);
+  const p2 = evid
+    ? "具体到题目，你选了"+evid+"。"+EVID_LINE[top]
+    : EVID_LINE[top];
+
+  const p3 = TYPE_LINE[typeName] + (TYPE_EXTRA[typeName] || "");
+
+  const notes = [];
+  const skipped = QUESTIONS.length - picked;
+  if(sc(top) - sc(second) < 0.06) notes.push("前两项比例很接近，结果卡在两类之间，换一两题就可能变。");
+  if(skipped) notes.push("你有 "+skipped+" 题跳过，结果会比全答更松一些。");
+  const least = rank[rank.length-1];
+  if(cnt[least] === 0) notes.push("「"+TRAIT[least]+"」一次都没出现，方向比较统一。");
+  const p4 = notes.length ? notes.join("") : "";
+
+  return [p1, p2, p3, p4].filter(Boolean).join("\n\n");
 }
 
 /* [话语] 结果页补充区：3 个标签 + 必要的提醒，不再逐题复述 */
@@ -685,6 +780,21 @@ function backToResult(){
   document.getElementById("rDetail").style.display = "";
   show("result");
 }
+
+/* [赞赏] 二维码放在弹层里，点底部那行小字才打开 */
+function openTip(){
+  const m = document.getElementById("tipMask");
+  if(!m) return;
+  m.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+function closeTip(){
+  const m = document.getElementById("tipMask");
+  if(!m) return;
+  m.classList.remove("show");
+  document.body.style.overflow = "";
+}
+document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeTip(); });
 
 /* ================= 适合互相舔舐伤口的对象 ================= */
 /* ================= 分享 ================= */
